@@ -53,8 +53,8 @@ describe("Login component tests", () => {
 
     fireEvent.click(loginButton);
 
-    const resultLabel = screen.getByTestId('resultLabel');
-    expect(resultLabel.textContent).toBe("UserName and password required!")
+    const resultLabel = screen.getByTestId("resultLabel");
+    expect(resultLabel.textContent).toBe("UserName and password required!");
   });
 
   it("Click login button with incomplete credenttials - show required message - with user click", () => {
@@ -63,9 +63,89 @@ describe("Login component tests", () => {
 
     act(() => {
       user.click(loginButton);
-    })
+    });
 
-    const resultLabel = screen.getByTestId('resultLabel');
-    expect(resultLabel.textContent).toBe("UserName and password required!")
+    const resultLabel = screen.getByTestId("resultLabel");
+    expect(resultLabel.textContent).toBe("UserName and password required!");
+  });
+
+  it("right credentials - successful login", async () => {
+    loginServicesMock.login.mockResolvedValueOnce("1234");
+    const inputs = container.querySelectorAll("input");
+    const userNameInput = inputs[0];
+    const passWordInput = inputs[1];
+    const loginButton = inputs[2];
+
+    fireEvent.change(userNameInput, { target: { value: "someUser" } });
+    fireEvent.change(passWordInput, { target: { value: "somePassword" } });
+    fireEvent.click(loginButton);
+
+    expect(loginServicesMock.login).toBeCalledWith("someUser", "somePassword");
+
+    const resultLabel = await screen.findByTestId("resultLabel");
+    expect(resultLabel.textContent).toBe("successful login");
+  });
+
+  it("right credentials - successful login - with user calls", async () => {
+    loginServicesMock.login.mockResolvedValueOnce("1234");
+    const inputs = container.querySelectorAll("input");
+    const userNameInput = inputs[0];
+    const passWordInput = inputs[1];
+    const loginButton = inputs[2];
+
+    act(() => {
+      user.click(userNameInput);
+      user.keyboard("someUser");
+
+      user.click(passWordInput);
+      user.keyboard("somePassword");
+
+      user.click(loginButton);
+    });
+
+    expect(loginServicesMock.login).toBeCalledWith("someUser", "somePassword");
+
+    const resultLabel = await screen.findByTestId("resultLabel");
+    expect(resultLabel.textContent).toBe("successful login");
+  });
+
+  it("right credentials - unsuccessful login", async () => {
+    loginServicesMock.login.mockResolvedValueOnce(undefined);
+    const inputs = container.querySelectorAll("input");
+    const userNameInput = inputs[0];
+    const passWordInput = inputs[1];
+    const loginButton = inputs[2];
+
+    fireEvent.change(userNameInput, { target: { value: "someUser" } });
+    fireEvent.change(passWordInput, { target: { value: "somePassword" } });
+    fireEvent.click(loginButton);
+
+    expect(loginServicesMock.login).toBeCalledWith("someUser", "somePassword");
+
+    const resultLabel = await screen.findByTestId("resultLabel");
+    expect(resultLabel.textContent).toBe("invalid credentials");
+  });
+
+  it("right credentials - unsuccessful login - with user calls", async () => {
+    loginServicesMock.login.mockResolvedValueOnce(undefined);
+    const inputs = container.querySelectorAll("input");
+    const userNameInput = inputs[0];
+    const passWordInput = inputs[1];
+    const loginButton = inputs[2];
+
+    act(() => {
+      user.click(userNameInput);
+      user.keyboard("someUser");
+
+      user.click(passWordInput);
+      user.keyboard("somePassword");
+
+      user.click(loginButton);
+    });
+
+    expect(loginServicesMock.login).toBeCalledWith("someUser", "somePassword");
+
+    const resultLabel = await screen.findByTestId("resultLabel");
+    expect(resultLabel.textContent).toBe("invalid credentials");
   });
 });
